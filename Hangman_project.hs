@@ -1,3 +1,9 @@
+-- Hangman is a paper and pencil guessing game, and this is the computer version of the game
+-- Actually you can play the game three different mode(by typing the different lines to the terminal):
+--     - mainFromStdin (after the enter, you give a riddle and you have to guess it)
+--     - mainFromFile (after the enter, you have to guess the riddle which is in the hangman_in.txt )
+--     - mainFromRandoms (after the enter, you have to give a random number, and you got a random riddle, which is one of the lines in the hangman_words.txt)
+
 import Data.Char
 import Data.List
 
@@ -160,37 +166,54 @@ play abc (k: ve) currentState
 --evaluatePlay abc "SAK" ("SOS",[],[]) -> "The game is pending! Current state is: (\"S_S\",\"S\",\"KA\")"
 evaluatePlay :: ABC -> [Char] -> State -> String
 evaluatePlay abc guessLetters currentState
-    | isRiddleComplete $ play abc guessLetters currentState = "The player completed the word. Congratulations! The solutions was: " ++ (getRiddle currentState)
+    | isRiddleComplete $ play abc guessLetters currentState = "You completed the riddle. Congratulations! The solutions was: " ++ (getRiddle currentState)
     | isGameOver $ play abc guessLetters currentState = "Game Over. Try a new game!"
-    | otherwise = "The game is pending! Current state is: " ++ (show $ play abc guessLetters currentState)
-
-
---actual main for the game with a word from stdin
-mainFromStdin :: IO (Maybe a)
-mainFromStdin = do
-    putStr "Insert the word: "
-    theWord <- getLine
-    readLetters abc "" $ startState abc theWord
-    return Nothing
+    | otherwise = "The game is pending! Current state is(riddle, right guesses, wrong guesses): " ++ (show $ play abc guessLetters currentState)
 
 readLetters :: ABC -> [Char] -> State -> IO (Maybe a)
 readLetters abc guessLetters currentState = do
-    print $ evaluatePlay abc guessLetters currentState
+    putStrLn $ evaluatePlay abc guessLetters currentState
     printFigure $ allFigures !! (length (getWrongGuesses $ play abc guessLetters currentState))
+    
     if isGameOver $ play abc guessLetters currentState then return Nothing
     else do 
         putStr "Give a letter: "
         letter <- getLine
+
         if letter == []
         then readLetters abc guessLetters currentState
         else do readLetters abc (guessLetters ++ [stringToChar $ take 1 letter]) currentState
 
 stringToChar :: String -> Char
-stringToChar [c] = c
+stringToChar c = head c
+
+--actual main for the game with a word from stdin
+mainFromStdin :: IO (Maybe a)
+mainFromStdin = do
+    putStr "Welcome to Haskell Hangman! Enter a word (or sentence) to guess: "
+    theWord <- getLine
+    readLetters abc "" $ startState abc theWord
+    return Nothing
 
 --actual main for the game with a word from a txt 
 mainFromFile :: IO (Maybe a)
 mainFromFile = do
+    putStr "Welcome to Haskell Hangman!"
     theWord <- readFile "hangman_in.txt"
+    readLetters abc "" $ startState abc theWord
+
+--actual main for the game from random words
+mainFromRandoms:: IO (Maybe a)
+mainFromRandoms = do
+    putStrLn "Welcome to Haskell Hangman!"
+    content <- readFile "hangman_words.txt"
+    let linesOfFiles = lines content
+    print $ length linesOfFiles
+
+    putStr "Give me a random number: "
+    id <- getLine
+    let modId = mod (read id :: Int) ((length linesOfFiles )-1)
+    let theWord = (linesOfFiles !! modId)
+
     readLetters abc "" $ startState abc theWord
 
