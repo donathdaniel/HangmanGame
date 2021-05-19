@@ -154,7 +154,7 @@ minusArray (k: ve) guessLetters
     | any (k==) guessLetters == False = [k] ++ minusArray ve guessLetters
     | otherwise = minusArray ve guessLetters
 
---with the letters and the start state of the game, play 
+--with the letters and the start state of the game show us the result tuple
 --play abc "SAK" ("SOS",[],[]) -> ("S_S","S","KA")
 play :: ABC -> [Char] -> State -> State
 play abc [] currentState = showState currentState
@@ -170,6 +170,7 @@ evaluatePlay abc guessLetters currentState
     | isGameOver $ play abc guessLetters currentState = "Game Over. Try a new game!"
     | otherwise = "The game is pending! Current state is(riddle, right guesses, wrong guesses): " ++ (show $ play abc guessLetters currentState)
 
+--we have to add a letter and show us the hangman in each step of the game
 readLetters :: ABC -> [Char] -> State -> IO (Maybe a)
 readLetters abc guessLetters currentState = do
     putStrLn $ evaluatePlay abc guessLetters currentState
